@@ -1,10 +1,17 @@
 import random
-from Prisoner import Prisoner
-from LightSwitch import LightSwitch
-from Room import Room
+from lib.Prisoner import Prisoner
+from lib.LightSwitch import LightSwitch
+from lib.Room import Room
+from sql.SQLiteManager import SQLiteManager
+import argparse
+import logging
 
 # NOTES:
 # DAYS START AT 1 (IM SORRY) NOT ZERO (IM SORRY)
+
+logger = logging.getLogger("prisonsimulator")
+logger.setLevel(logging.DEBUG)
+
 
 def generate_prisoners(max_prisoners):
     prisoners = []
@@ -15,22 +22,30 @@ def generate_prisoners(max_prisoners):
     return prisoners
 
 
-def start_algorithm(prisoners, room):
-    print("Starting Algorithm")
+def start_algorithm(prisoners, room, keep_stats):
+    logger.info("Starting Algorithm")
     all_have_visited = False
     day_count = 1
+    simulation_id = random.randint(0, (2**60))
 
-    print("Starting On Day " + str(day_count))
+    sqlite_manager = None
+    if keep_stats:
+        sqlite_manager = SQLiteManager()
+
+    logger.info("Starting On Day " + str(day_count))
 
     while not all_have_visited:
 
         # choose a random prisoner
         prisoner_index = random.randint(0, 99)
-        print("Random Prisoner Of Index: " + str(prisoner_index) + " Was Chosen To Enter The Room")
+        logger.info("Random Prisoner Of Index: " + str(prisoner_index) + " Was Chosen To Enter The Room")
         prisoner = prisoners[prisoner_index]
 
         # send them into the room
         prisoner_returned_from_room = room.prisoner_enters_room(prisoner)
+        # collect stats on their actions
+        if keep_stats:
+            sqlite_manager.addPrisonerRecord(prisoner_returned_from_room, simulation_id)
 
         # check if they want to declare anything
         has_accounted = prisoner_returned_from_room.decideWhetherToAnnounce()
@@ -43,8 +58,10 @@ def start_algorithm(prisoners, room):
         for prisoner in prisoners:
             prisoner.incrementDayCount()
 
-        print("Starting On Day " + str(day_count))
+        logger.info("Starting On Day " + str(day_count))
 
+    if keep_stats:
+        sqlite_manager.closeEverything()
     return day_count
 
 def is_valid_announcement(prisoners):
@@ -57,33 +74,49 @@ def is_valid_announcement(prisoners):
 
 
 if __name__ == '__main__':
-    print("Starting Simulator")
+
+    parser = argparse.ArgumentParser(description='Prison Simulator')
+    parser.add_argument("--KEEPSTATS",
+                        help="Include flag to have stats exported to sqlite database. Warning this slows down the simulation alot", action='store_true')
+    parser.add_argument("--SILENT",
+                       help="Run the simulation in silent mode. Makes it a bit faster. Now output is printed except loading and post simulation", action='store_true')
+
+    args = parser.parse_args()
+    keep_stats = args.KEEPSTATS
+    silent_mode = args.SILENT
+
+    if not silent_mode:
+        ch = logging.StreamHandler()
+        ch.setLevel(logging.DEBUG)
+        logger.addHandler(ch)
+
+    logger.info("Starting Simulator")
 
     # build all of our structures and data
     max_prisoners = 100
 
-    print("Prisoner Count Set To: " + str(max_prisoners))
-    print("Now Genrating Prisoner Objects")
+    logger.info("Prisoner Count Set To: " + str(max_prisoners))
+    logger.info("Now Genrating Prisoner Objects")
     prisoners = generate_prisoners(max_prisoners)
-    print("Prisoners Generated. Building LightSwitch And Room Components")
+    logger.info("Prisoners Generated. Building LightSwitch And Room Components")
     # create a lightswitch
     light_switch = LightSwitch()
     # create a room
     room = Room(light_switch)
 
-    print("Now Executing Simulation")
+    logger.info("Now Executing Simulation")
     # start the simulation
-    day_count = start_algorithm(prisoners, room)
-    print("Simulation Completed. Analyzing Results")
+    day_count = start_algorithm(prisoners, room, keep_stats)
+    logger.info("Simulation Completed. Analyzing Results")
 
     # check if the results are correct
     if not is_valid_announcement(prisoners):
-        print("Announcement Was Wrong. Everyone Is Executed!")
+        logger.info("Announcement Was Wrong. Everyone Is Executed!")
     else:
-        print("Accountement Was Right. Everyone Is Free!")
+        logger.info("Accountement Was Right. Everyone Is Free!")
 
     # dump some stats
-    print("It Took " + str(day_count) + " Days Before An Announcement Was Made")
+    logger.info("It Took " + str(day_count) + " Days Before An Announcement Was Made")
 
 
 
