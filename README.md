@@ -69,11 +69,3 @@ have been in the room. This method is called everytime after `handles_lightswitc
 occurred
 
 You can also adjust the number of prisoners by editing the `max_prisoners` variable listed in the `main.py`
-
-# TODO
-More features are coming with metrics as the simulation occurs. The intention to be able to output an
-sqlite database of each days events from the simulation - which can then be graphed from for data
-and debugging. Additionally features to allow others to clone the repo and easily add their own algorithms
-is coming
-
-NOTE THIS PROJECT IS IN BETA AND DOESN'T HAVE MUCH OF A SHELF LIFE.
