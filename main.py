@@ -53,7 +53,7 @@ def start_algorithm(prisoners, room, keep_stats):
         # increment the day for all prisoners and take a record if enabled
 
         if keep_stats:
-            sqlite_manager.addRecordsForPrisoners(prisoners, simulation_id)
+            sqlite_manager.addRecordsForPrisoners(prisoners, room.light_switch, simulation_id)
 
         day_count += 1
         for prisoner in prisoners:

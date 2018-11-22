@@ -10,4 +10,5 @@ class Room:
     def prisoner_enters_room(self, prisoner):
 
         prisoner.handles_lightswitch(self.light_switch)
+        prisoner.enter_room_count += 1
         return prisoner

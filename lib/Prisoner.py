@@ -12,6 +12,8 @@ class Prisoner:
 
     declare_all_prisoners_visited = False  # override variable for cases where the counter can immediatly determine who visited
 
+    enter_room_count = 0 # how many times this prisoner has entered the room - controlled by room object!
+
     def __init__(self, prisoner_number, max_prisoners):
         self.prisoner_number = prisoner_number
         self.max_prisoners = max_prisoners
