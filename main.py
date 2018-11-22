@@ -63,7 +63,7 @@ def start_algorithm(prisoners, room, keep_stats):
 
     if keep_stats:
         sqlite_manager.closeEverything()
-    return day_count
+    return (day_count, simulation_id)
 
 def is_valid_announcement(prisoners):
 
@@ -107,17 +107,18 @@ if __name__ == '__main__':
 
     print("Now Executing Simulation")
     # start the simulation
-    day_count = start_algorithm(prisoners, room, keep_stats)
+    day_count, simulation_id = start_algorithm(prisoners, room, keep_stats)
     print("Simulation Completed. Analyzing Results")
 
     # check if the results are correct
     if not is_valid_announcement(prisoners):
         print("Announcement Was Wrong. Everyone Is Executed!")
     else:
-        print("Accountement Was Right. Everyone Is Free!")
+        print("Announcement Was Right. Everyone Is Free!")
 
     # dump some stats
     print("It Took " + str(day_count) + " Days Before An Announcement Was Made")
+    print("Simulation ID: " +str(simulation_id))
 
 
 
